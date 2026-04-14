@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Spelling Trainer — Year 5/6</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -511,6 +512,27 @@
 </div>
 
 <script>
+// ─── EMAILJS ─────────────────────────────────────────────────────────────────
+const EJS_KEY="BMMGXE8I6OtVeMROI",EJS_SVC="service_wtgin0l",EJS_TPL="template_tb01514",P_EMAIL="vafgeo@gmail.com";
+emailjs.init(EJS_KEY);
+
+function sendSpellingEmail(player, score, total, mode, wrongWords) {
+  const pct = Math.round(score / total * 100);
+  const modeNames = {full:'Full Challenge (100 words)',quick:'Quick Fire (20 words)',tricky:'Tricky Words Only (30 words)',pattern:'Pattern Groups'};
+  const wrongList = wrongWords.length === 0 ? 'All correct! 🎉' : wrongWords.map(a => `  ${a.word}  (wrote: ${a.typed})`).join('\n');
+  const band = pct >= 80 ? 'Brilliant' : pct >= 60 ? 'Good' : pct >= 40 ? 'Developing' : 'Needs support';
+  const body = `Year 5 Spelling Trainer Results\n====================\nChild: ${player}\nMode: ${modeNames[mode]||mode}\nScore: ${score}/${total} (${pct}%)\nBand: ${band}\n\nWords to practise:\n${wrongList}\n====================\n${new Date().toLocaleString('en-GB')}`;
+  emailjs.send(EJS_SVC, EJS_TPL, {
+    to_email: P_EMAIL, pupil_name: player,
+    score: score + ' out of ' + total,
+    band: band, time_taken: pct + '%',
+    results_body: body,
+    date: new Date().toLocaleString('en-GB'),
+    test_name: 'Spelling Trainer — ' + (modeNames[mode]||mode),
+    subject: 'Year 5 English'
+  }).catch(e => console.error('EmailJS:', e));
+}
+
 // ─── WORD DATABASE ───────────────────────────────────────────────────────────
 const ALL_WORDS = [
   // Silent/tricky letters
@@ -857,6 +879,9 @@ function showResults() {
   }
 
   showScreen('results');
+
+  // Send results email
+  sendSpellingEmail(state.player, state.score, total, state.mode, wrong);
 }
 </script>
 </body>

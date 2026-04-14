@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spelling Trainer — Year 5/6</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0c29;
+    --bg2: #1a1640;
+    --bg3: #242057;
+    --card: #1e1a4a;
+    --card2: #2a2660;
+    --accent: #f72585;
+    --accent2: #7209b7;
+    --accent3: #4cc9f0;
+    --accent4: #f8961e;
+    --green: #06d6a0;
+    --red: #ef233c;
+    --text: #ffffff;
+    --text2: #b8b4e0;
+    --text3: #7b78b0;
+    --gold: #ffd60a;
+    --radius: 16px;
+    --radius-lg: 24px;
+    --font: 'Nunito', sans-serif;
+    --font-display: 'Baloo 2', sans-serif;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Animated background stars */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 30%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 60%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 15% 70%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 65% 90%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(2px 2px at 35% 55%, rgba(76,201,240,0.3) 0%, transparent 100%),
+      radial-gradient(2px 2px at 80% 20%, rgba(247,37,133,0.2) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 24px 20px 60px; }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 32px;
+    animation: fadeDown 0.6s ease both;
+  }
+  .header-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border-radius: 50px; padding: 6px 18px;
+    font-size: 13px; font-weight: 800; letter-spacing: 0.08em;
+    text-transform: uppercase; margin-bottom: 12px;
+  }
+  .header h1 {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 6vw, 42px);
+    font-weight: 800;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #fff 0%, var(--accent3) 50%, var(--accent) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  .header p { color: var(--text2); font-size: 15px; font-weight: 600; }
+
+  /* Player select */
+  #screen-player { animation: fadeUp 0.5s ease both; }
+  .player-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+  .player-card {
+    background: var(--card);
+    border: 2px solid transparent;
+    border-radius: var(--radius-lg);
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative; overflow: hidden;
+  }
+  .player-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .player-card:hover { transform: translateY(-4px); border-color: var(--accent); }
+  .player-card:hover::before { opacity: 0.12; }
+  .player-card .emoji { font-size: 48px; display: block; margin-bottom: 12px; position: relative; z-index: 1; }
+  .player-card .name {
+    font-family: var(--font-display);
+    font-size: 22px; font-weight: 800;
+    position: relative; z-index: 1;
+  }
+  .player-card.viktor { border-color: rgba(76,201,240,0.3); }
+  .player-card.viktor:hover { border-color: var(--accent3); }
+  .player-card.philip { border-color: rgba(247,37,133,0.3); }
+  .player-card.philip:hover { border-color: var(--accent); }
+
+  /* Mode select */
+  #screen-mode { animation: fadeUp 0.5s ease both; }
+  .mode-cards { display: grid; gap: 14px; margin-top: 24px; }
+  .mode-card {
+    background: var(--card);
+    border: 2px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 18px;
+    transition: all 0.2s ease;
+  }
+  .mode-card:hover { border-color: var(--accent3); transform: translateX(6px); }
+  .mode-icon { font-size: 32px; flex-shrink: 0; }
+  .mode-info h3 { font-size: 16px; font-weight: 800; margin-bottom: 3px; }
+  .mode-info p { font-size: 13px; color: var(--text2); line-height: 1.4; }
+
+  /* Game screen */
+  #screen-game { animation: fadeUp 0.5s ease both; }
+
+  .game-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .player-tag {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--card); border-radius: 50px;
+    padding: 8px 16px; font-weight: 800; font-size: 14px;
+  }
+  .progress-info { text-align: right; }
+  .progress-info .q-num { font-size: 13px; color: var(--text2); font-weight: 600; }
+  .progress-info .score-display { font-size: 18px; font-weight: 900; color: var(--gold); }
+
+  .progress-bar-wrap {
+    background: var(--card); border-radius: 50px;
+    height: 8px; margin-bottom: 24px; overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent3));
+    border-radius: 50px;
+    transition: width 0.4s ease;
+  }
+
+  /* Word card */
+  .word-card {
+    background: var(--card);
+    border: 2px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius-lg);
+    padding: 32px 28px;
+    margin-bottom: 20px;
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .word-card::after {
+    content: ''; position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(76,201,240,0.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .category-tag {
+    display: inline-block;
+    background: rgba(76,201,240,0.15);
+    color: var(--accent3);
+    border-radius: 50px; padding: 4px 14px;
+    font-size: 11px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 16px;
+  }
+
+  .hint-text {
+    color: var(--text2); font-size: 15px; font-weight: 600;
+    line-height: 1.5; margin-bottom: 20px;
+    min-height: 48px;
+  }
+
+  .audio-btn {
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border: none; border-radius: 50px;
+    padding: 14px 32px;
+    color: #fff; font-family: var(--font);
+    font-size: 16px; font-weight: 800;
+    cursor: pointer; display: inline-flex;
+    align-items: center; gap: 10px;
+    transition: all 0.2s ease;
+    box-shadow: 0 8px 24px rgba(247,37,133,0.3);
+  }
+  .audio-btn:hover { transform: scale(1.05); box-shadow: 0 12px 30px rgba(247,37,133,0.4); }
+  .audio-btn:active { transform: scale(0.97); }
+  .audio-btn.playing { background: linear-gradient(135deg, var(--accent3), #0096c7); box-shadow: 0 8px 24px rgba(76,201,240,0.3); }
+
+  /* Answer area */
+  .answer-area { margin-bottom: 16px; }
+  .answer-input {
+    width: 100%;
+    background: var(--card);
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 22px; font-weight: 700;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .answer-input:focus { border-color: var(--accent3); }
+  .answer-input.correct { border-color: var(--green); background: rgba(6,214,160,0.08); }
+  .answer-input.incorrect { border-color: var(--red); background: rgba(239,35,60,0.08); }
+
+  /* Feedback */
+  .feedback {
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    display: none;
+    animation: popIn 0.3s ease both;
+  }
+  .feedback.correct { background: rgba(6,214,160,0.12); border: 1.5px solid rgba(6,214,160,0.3); }
+  .feedback.incorrect { background: rgba(239,35,60,0.1); border: 1.5px solid rgba(239,35,60,0.25); }
+  .feedback-title { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+  .feedback.correct .feedback-title { color: var(--green); }
+  .feedback.incorrect .feedback-title { color: var(--red); }
+  .feedback-body { font-size: 14px; color: var(--text2); line-height: 1.5; }
+  .correct-word { color: var(--text); font-weight: 800; font-size: 16px; }
+
+  /* Pattern highlight */
+  .pattern-hint {
+    background: rgba(248,150,30,0.1);
+    border: 1.5px solid rgba(248,150,30,0.25);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 13px; color: var(--text2);
+    display: none;
+  }
+  .pattern-hint span { color: var(--accent4); font-weight: 800; }
+
+  /* Buttons */
+  .btn {
+    width: 100%; padding: 16px;
+    border: none; border-radius: var(--radius);
+    font-family: var(--font); font-size: 16px; font-weight: 800;
+    cursor: pointer; transition: all 0.2s ease;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(247,37,133,0.25);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(247,37,133,0.35); }
+  .btn-secondary {
+    background: var(--card2); color: var(--text2);
+    border: 1.5px solid rgba(255,255,255,0.1);
+    margin-top: 10px;
+  }
+  .btn-secondary:hover { border-color: rgba(255,255,255,0.25); color: var(--text); }
+
+  /* Results screen */
+  #screen-results { animation: fadeUp 0.5s ease both; text-align: center; }
+  .results-circle {
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: conic-gradient(var(--accent3) 0deg, var(--accent) 180deg, var(--card2) 180deg);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    position: relative;
+  }
+  .results-circle::before {
+    content: ''; position: absolute; inset: 8px;
+    background: var(--bg); border-radius: 50%;
+  }
+  .results-score {
+    position: relative; z-index: 1;
+    font-family: var(--font-display);
+    font-size: 36px; font-weight: 900;
+    line-height: 1;
+  }
+  .results-score .denom { font-size: 18px; color: var(--text2); }
+  .results-title {
+    font-family: var(--font-display);
+    font-size: 28px; font-weight: 800;
+    margin-bottom: 8px;
+  }
+  .results-msg { color: var(--text2); font-size: 15px; margin-bottom: 28px; line-height: 1.5; }
+
+  .wrong-list {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: left;
+    margin-bottom: 24px;
+  }
+  .wrong-list h3 { font-size: 14px; font-weight: 800; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
+  .wrong-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .wrong-item:last-child { border-bottom: none; }
+  .wrong-typed { color: var(--red); font-weight: 700; text-decoration: line-through; font-size: 15px; }
+  .wrong-correct { color: var(--green); font-weight: 800; font-size: 15px; }
+  .wrong-arrow { color: var(--text3); margin: 0 8px; }
+
+  /* Stats bar */
+  .stats-row {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 12px; margin-bottom: 24px;
+  }
+  .stat-box {
+    background: var(--card); border-radius: var(--radius);
+    padding: 14px 10px; text-align: center;
+  }
+  .stat-val { font-size: 22px; font-weight: 900; font-family: var(--font-display); }
+  .stat-label { font-size: 11px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+
+  /* Back btn */
+  .back-btn {
+    background: none; border: none;
+    color: var(--text2); font-family: var(--font);
+    font-size: 14px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; gap: 6px;
+    padding: 0; margin-bottom: 20px;
+    transition: color 0.15s;
+  }
+  .back-btn:hover { color: var(--text); }
+
+  /* Animations */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes popIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+  @keyframes bounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+
+  .shake { animation: shake 0.4s ease; }
+  .bounce { animation: bounce 0.4s ease; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-badge">⭐ Year 5/6 Quest</div>
+    <h1>Spelling Trainer</h1>
+    <p>Master the 100 words every Year 6 needs to know</p>
+  </div>
+
+  <!-- Screen: Player Select -->
+  <div id="screen-player">
+    <div style="text-align:center; color:var(--text2); font-size:15px; font-weight:600;">Who's playing today?</div>
+    <div class="player-cards">
+      <div class="player-card viktor" onclick="selectPlayer('Viktor','🦁')">
+        <span class="emoji">🦁</span>
+        <div class="name" style="color:var(--accent3)">Viktor</div>
+      </div>
+      <div class="player-card philip" onclick="selectPlayer('Philip','🚀')">
+        <span class="emoji">🚀</span>
+        <div class="name" style="color:var(--accent)">Philip</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen: Mode Select -->
+  <div id="screen-mode" class="hidden">
+    <button class="back-btn" onclick="showScreen('player')">← Back</button>
+    <div style="text-align:center; color:var(--text2); font-size:15px; font-weight:600; margin-bottom:4px;">Choose your mission, <span id="mode-player-name"></span>!</div>
+    <div class="mode-cards">
+      <div class="mode-card" onclick="startGame('full')">
+        <div class="mode-icon">🎯</div>
+        <div class="mode-info">
+          <h3>Full Challenge</h3>
+          <p>All 100 statutory words, randomised. The complete Year 6 word list.</p>
+        </div>
+      </div>
+      <div class="mode-card" onclick="startGame('quick')">
+        <div class="mode-icon">⚡</div>
+        <div class="mode-info">
+          <h3>Quick Fire</h3>
+          <p>20 random words from the full list. Perfect for a quick daily session.</p>
+        </div>
+      </div>
+      <div class="mode-card" onclick="startGame('tricky')">
+        <div class="mode-icon">🔥</div>
+        <div class="mode-info">
+          <h3>Tricky Words Only</h3>
+          <p>The 30 most commonly misspelled words from the list. Hard mode.</p>
+        </div>
+      </div>
+      <div class="mode-card" onclick="startGame('pattern')">
+        <div class="mode-icon">🔍</div>
+        <div class="mode-info">
+          <h3>Pattern Groups</h3>
+          <p>Words grouped by spelling pattern — silent letters, double letters, -ough, -tion, and more.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen: Game -->
+  <div id="screen-game" class="hidden">
+    <div class="game-header">
+      <div class="player-tag">
+        <span id="g-player-emoji"></span>
+        <span id="g-player-name"></span>
+      </div>
+      <div class="progress-info">
+        <div class="q-num">Question <span id="g-qnum">1</span> of <span id="g-qtotal">20</span></div>
+        <div class="score-display">⭐ <span id="g-score">0</span></div>
+      </div>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="g-progress" style="width:0%"></div>
+    </div>
+
+    <div class="word-card">
+      <div class="category-tag" id="g-category">Spelling</div>
+      <div class="hint-text" id="g-hint">Loading...</div>
+      <button class="audio-btn" id="g-audio-btn" onclick="playWord()">
+        🔊 Hear the word
+      </button>
+    </div>
+
+    <div class="pattern-hint" id="g-pattern">
+      💡 Pattern tip: <span id="g-pattern-text"></span>
+    </div>
+
+    <div class="answer-area">
+      <input
+        type="text"
+        class="answer-input"
+        id="g-input"
+        placeholder="Type the word here..."
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        onkeydown="handleKey(event)"
+      />
+    </div>
+
+    <div class="feedback" id="g-feedback">
+      <div class="feedback-title" id="g-feedback-title"></div>
+      <div class="feedback-body" id="g-feedback-body"></div>
+    </div>
+
+    <button class="btn btn-primary" id="g-submit-btn" onclick="submitAnswer()">Check Answer ✓</button>
+    <button class="btn btn-secondary hidden" id="g-next-btn" onclick="nextQuestion()">Next Word →</button>
+  </div>
+
+  <!-- Screen: Results -->
+  <div id="screen-results" class="hidden">
+    <div class="results-circle" id="r-circle">
+      <div class="results-score">
+        <span id="r-score">0</span><br>
+        <span class="denom">/<span id="r-total">20</span></span>
+      </div>
+    </div>
+    <div class="results-title" id="r-title">Well done!</div>
+    <div class="results-msg" id="r-msg"></div>
+
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-val" id="r-correct" style="color:var(--green)">0</div>
+        <div class="stat-label">Correct</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="r-wrong" style="color:var(--red)">0</div>
+        <div class="stat-label">Wrong</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="r-pct" style="color:var(--gold)">0%</div>
+        <div class="stat-label">Score</div>
+      </div>
+    </div>
+
+    <div class="wrong-list" id="r-wrong-list" style="display:none">
+      <h3>🔴 Words to practise</h3>
+      <div id="r-wrong-items"></div>
+    </div>
+
+    <button class="btn btn-primary" onclick="showScreen('mode')">Play Again 🔄</button>
+    <button class="btn btn-secondary" style="margin-top:12px" onclick="showScreen('player')">Change Player</button>
+  </div>
+
+</div>
+
+<script>
+// ─── WORD DATABASE ───────────────────────────────────────────────────────────
+const ALL_WORDS = [
+  // Silent/tricky letters
+  { word: "accommodate", hint: "To provide a room or space for someone. The hotel could ___ all the guests.", category: "Double letters", pattern: "Double 'c' and double 'm' — ac-com-mo-date", tricky: true },
+  { word: "accompany", hint: "To go somewhere with someone. She will ___ her friend to the shops.", category: "Double letters", pattern: "Double 'c' — ac-com-pa-ny", tricky: true },
+  { word: "aggressive", hint: "Acting in an angry or forceful way. The dog became ___ when cornered.", category: "Double letters", pattern: "Double 'g' and double 's' — ag-gres-sive", tricky: true },
+  { word: "amateur", hint: "Someone who does something for fun, not as a job. An ___ painter.", category: "Tricky endings", pattern: "Ends in '-eur' not '-er'", tricky: true },
+  { word: "ancient", hint: "Very old, from a long time ago. The ___ Romans built great roads.", category: "-ient words", pattern: "'-ient' — an-cient", tricky: false },
+  { word: "apparent", hint: "Easy to see or understand. It was ___ that she was tired.", category: "Double letters", pattern: "Double 'p' — ap-par-ent", tricky: true },
+  { word: "appreciate", hint: "To be grateful for something. I really ___ your help.", category: "Tricky middles", pattern: "'-preci-' in the middle — ap-pre-ci-ate", tricky: true },
+  { word: "attached", hint: "Fixed or joined to something. The label was ___ to the bag.", category: "Double letters", pattern: "Double 't' — at-tached", tricky: false },
+  { word: "available", hint: "Ready or able to be used. Is this seat ___?", category: "-able words", pattern: "Keep the 'e': avail-able", tricky: false },
+  { word: "average", hint: "The typical or middle amount. What is the ___ score?", category: "Tricky middles", pattern: "av-er-age — watch the middle 'e'", tricky: false },
+  { word: "awkward", hint: "Clumsy or embarrassing. There was an ___ silence.", category: "Silent letters", pattern: "Silent 'w' after 'a' — awk-ward", tricky: true },
+  { word: "bargain", hint: "Something bought cheaply. That coat was a real ___.", category: "Silent letters", pattern: "Silent 'g' — bar-gain", tricky: true },
+  { word: "bruise", hint: "A dark mark on skin from a bump. She had a ___ on her knee.", category: "Silent letters", pattern: "Silent 'u' — br-ui-se", tricky: true },
+  { word: "category", hint: "A group of things with something in common. Which ___ does it belong to?", category: "Tricky middles", pattern: "cat-e-gor-y — watch the 'e' in the middle", tricky: true },
+  { word: "cemetery", hint: "A place where people are buried. The old ___ was behind the church.", category: "Tricky middles", pattern: "All three vowels are 'e' — cem-e-ter-y", tricky: true },
+  { word: "committee", hint: "A group of people who make decisions. The school ___.", category: "Double letters", pattern: "Double 'm', double 't', double 'e' — com-mit-tee", tricky: true },
+  { word: "communicate", hint: "To share information with others. We ___ by email.", category: "Tricky endings", pattern: "com-mun-i-cate — don't forget the 'i'", tricky: false },
+  { word: "community", hint: "A group of people living in the same area. Our local ___.", category: "Tricky endings", pattern: "com-mun-i-ty", tricky: false },
+  { word: "competition", hint: "An event where people try to win. She entered the spelling ___.", category: "-tion words", pattern: "com-pe-ti-tion", tricky: false },
+  { word: "conscience", hint: "Your inner sense of right and wrong. Her ___ told her it was wrong.", category: "Silent letters", pattern: "Silent 'c' after 's' — con-science", tricky: true },
+  { word: "conscious", hint: "Aware of your surroundings. She was fully ___ after the fall.", category: "Silent letters", pattern: "Silent 'c' — con-scious", tricky: true },
+  { word: "controversy", hint: "A big public disagreement. The decision caused great ___.", category: "Tricky stress", pattern: "con-tro-ver-sy — stress the second syllable", tricky: true },
+  { word: "convenience", hint: "Something that makes life easier. A shop nearby is a great ___.", category: "-ence words", pattern: "con-ven-ience — '-ience' ending", tricky: true },
+  { word: "correspond", hint: "To write letters to someone, or to match. The colours ___.", category: "Double letters", pattern: "Double 'r' — cor-re-spond", tricky: false },
+  { word: "criticise", hint: "To point out faults in something. Don't ___ without helping.", category: "Tricky endings", pattern: "crit-i-cise — ends in '-ise' not '-ize'", tricky: false },
+  { word: "curiosity", hint: "A strong desire to know or learn. Cats are known for their ___.", category: "Tricky middles", pattern: "cu-ri-os-i-ty — watch all those vowels", tricky: true },
+  { word: "definite", hint: "Certain and clear. Is that a ___ answer?", category: "Tricky endings", pattern: "def-in-ite — ends '-ite' not '-ate'", tricky: true },
+  { word: "desperate", hint: "Having a great need or in a difficult situation. She was ___ for help.", category: "Tricky middles", pattern: "des-per-ate — the middle is '-per-' not '-par-'", tricky: true },
+  { word: "determined", hint: "Decided firmly to do something. He was ___ to finish.", category: "Tricky middles", pattern: "de-ter-mined — double check the middle", tricky: false },
+  { word: "develop", hint: "To grow or make something grow. Ideas ___ over time.", category: "Tricky endings", pattern: "de-vel-op — no 'e' at the end!", tricky: true },
+  { word: "dictionary", hint: "A book that explains the meaning of words. Look it up in the ___.", category: "-ary words", pattern: "dic-tion-ar-y", tricky: false },
+  { word: "disastrous", hint: "Causing great damage or suffering. The flood was ___.", category: "Tricky endings", pattern: "dis-as-trous — no 'e' before '-rous'", tricky: true },
+  { word: "embarrass", hint: "To make someone feel ashamed or awkward. Don't ___ me!", category: "Double letters", pattern: "Double 'r' AND double 's' — em-bar-rass", tricky: true },
+  { word: "environment", hint: "The natural world around us. We must protect the ___.", category: "Silent letters", pattern: "Silent 'n' — en-vi-ron-ment", tricky: true },
+  { word: "equip", hint: "To provide with what is needed. We must ___ the team.", category: "Tricky base", pattern: "equip — just one 'p' here, but 'equipped' doubles it", tricky: false },
+  { word: "equipped", hint: "Provided with everything needed. She was well ___ for the trip.", category: "Double letters", pattern: "Double 'p' — e-quipped", tricky: true },
+  { word: "especially", hint: "More than usual. I love chocolate, ___ dark chocolate.", category: "Tricky starts", pattern: "es-pe-cial-ly — note '-cially'", tricky: false },
+  { word: "exaggerate", hint: "To make something seem bigger than it is. Don't ___ the story.", category: "Double letters", pattern: "Double 'g' — ex-ag-ger-ate", tricky: true },
+  { word: "excellent", hint: "Extremely good. Her work was ___.", category: "Double letters", pattern: "Double 'l' — ex-cel-lent", tricky: false },
+  { word: "existence", hint: "The fact of being real or alive. Do aliens prove their ___?", category: "-ence words", pattern: "ex-is-tence — '-ence' not '-ance'", tricky: true },
+  { word: "explanation", hint: "A reason given for something. She gave a clear ___ for being late.", category: "-tion words", pattern: "ex-plan-a-tion", tricky: false },
+  { word: "familiar", hint: "Well known or recognisable. That face looks ___.", category: "Tricky middles", pattern: "fa-mil-iar — '-iar' not '-ier'", tricky: true },
+  { word: "foreign", hint: "From another country. She speaks a ___ language.", category: "Silent letters", pattern: "Silent 'g' — for-eign", tricky: true },
+  { word: "forty", hint: "The number 40. He is ___ years old.", category: "Tricky spellings", pattern: "Forty — no 'u' unlike 'four'!", tricky: true },
+  { word: "frequently", hint: "Happening often. She ___ visits the library.", category: "Tricky endings", pattern: "fre-quent-ly", tricky: false },
+  { word: "government", hint: "The group of people who run a country. The ___ made new laws.", category: "Silent letters", pattern: "Silent 'n' — gov-ern-ment", tricky: true },
+  { word: "guarantee", hint: "A firm promise. I ___ it will work.", category: "Tricky spellings", pattern: "guar-an-tee — don't forget the 'u' after 'g'", tricky: true },
+  { word: "harass", hint: "To repeatedly bother or annoy someone. It is wrong to ___ others.", category: "Double letters", pattern: "Single 'r', double 's' — ha-rass", tricky: true },
+  { word: "hindrance", hint: "Something that slows you down. The rain was a ___ to progress.", category: "-ance words", pattern: "hind-rance — no 'e' in 'hinder' but '-rance' ending", tricky: true },
+  { word: "identity", hint: "Who a person is. She has a strong sense of ___.", category: "Tricky middles", pattern: "i-den-ti-ty", tricky: false },
+  { word: "immediate", hint: "Happening right away. We need an ___ answer.", category: "Double letters", pattern: "Double 'm' — im-me-di-ate", tricky: true },
+  { word: "individual", hint: "A single person. Every ___ is unique.", category: "Tricky middles", pattern: "in-di-vid-u-al", tricky: false },
+  { word: "interfere", hint: "To get involved in something that is not your business. Don't ___!", category: "Tricky endings", pattern: "in-ter-fere — ends in '-ere'", tricky: true },
+  { word: "interrupt", hint: "To stop someone mid-sentence. Don't ___ when I'm speaking!", category: "Double letters", pattern: "Double 'r' — in-ter-rupt", tricky: true },
+  { word: "language", hint: "A system of communication. English is a tricky ___.", category: "Tricky endings", pattern: "lan-guage — don't forget the 'u' before '-age'", tricky: false },
+  { word: "leisure", hint: "Free time for enjoyment. What do you do in your ___ time?", category: "Silent letters", pattern: "Silent 'i' sound — lei-sure", tricky: true },
+  { word: "lightning", hint: "The flash of electricity in a storm. The ___ lit up the sky.", category: "Tricky spellings", pattern: "light-ning — no 'e', unlike 'lightening'", tricky: true },
+  { word: "marvellous", hint: "Wonderful and amazing. What a ___ view!", category: "Double letters", pattern: "Double 'l' — mar-vel-lous", tricky: true },
+  { word: "mischievous", hint: "Playfully naughty. The ___ puppy chewed my shoes.", category: "Tricky middles", pattern: "mis-chiev-ous — '-iev-' not '-iev-i-'", tricky: true },
+  { word: "muscle", hint: "Tissue in the body that contracts to create movement. A sore ___.", category: "Silent letters", pattern: "Silent 'c' — mus-cle", tricky: true },
+  { word: "necessary", hint: "Something that must be done or had. Sleep is ___.", category: "Double letters", pattern: "One 'c', double 's' — nec-es-sary", tricky: true },
+  { word: "neighbour", hint: "Someone who lives near you. She waved to her ___.", category: "Tricky spellings", pattern: "neigh-bour — '-eigh-' sound", tricky: true },
+  { word: "nuisance", hint: "Something annoying or causing trouble. That dog is a ___.", category: "-ance words", pattern: "nui-sance — 'nui-' at the start", tricky: true },
+  { word: "occasion", hint: "A special event or time. It was a grand ___.", category: "Double letters", pattern: "Double 'c', single 's' — oc-ca-sion", tricky: true },
+  { word: "occur", hint: "To happen. When did the accident ___?", category: "Double letters", pattern: "Double 'c' — oc-cur", tricky: false },
+  { word: "occurred", hint: "Happened. The accident ___ yesterday.", category: "Double letters", pattern: "Double 'c', double 'r' — oc-curred", tricky: true },
+  { word: "opportunity", hint: "A chance to do something. This is a great ___.", category: "Double letters", pattern: "Double 'p' — op-por-tun-i-ty", tricky: true },
+  { word: "parliament", hint: "The group of elected officials who make laws. The houses of ___.", category: "Silent letters", pattern: "Silent 'ia' sound — par-lia-ment", tricky: true },
+  { word: "persuade", hint: "To convince someone to do something. Can you ___ him?", category: "Tricky endings", pattern: "per-suade — '-suade' not '-swayde'", tricky: false },
+  { word: "physical", hint: "Related to the body or material things. ___ exercise is important.", category: "Tricky starts", pattern: "phys-i-cal — 'ph' makes an 'f' sound", tricky: false },
+  { word: "prejudice", hint: "An unfair negative opinion about someone. ___ is wrong.", category: "Tricky middles", pattern: "prej-u-dice — 'u' in the middle", tricky: true },
+  { word: "privilege", hint: "A special right or advantage. It was a ___ to meet her.", category: "Tricky middles", pattern: "priv-i-lege — '-ilege' not '-ledge'", tricky: true },
+  { word: "profession", hint: "A skilled job requiring training. Medicine is a respected ___.", category: "Double letters", pattern: "Double 's' — pro-fes-sion", tricky: false },
+  { word: "programme", hint: "A plan or TV show. Tonight's TV ___.", category: "Tricky endings", pattern: "pro-gramme — double 'm' and 'e' at end", tricky: true },
+  { word: "pronunciation", hint: "The way a word is said. The ___ of 'queue' is tricky.", category: "-tion words", pattern: "pro-nun-ci-a-tion — NOT pro-noun-ciation!", tricky: true },
+  { word: "queue", hint: "A line of people waiting. Join the ___ please.", category: "Tricky spellings", pattern: "queue — 'qu' + 'eue', all silent after the 'qu'", tricky: true },
+  { word: "recognise", hint: "To know someone or something from before. Do you ___ her?", category: "Tricky starts", pattern: "rec-og-nise — silent 'g' in the middle", tricky: true },
+  { word: "recommend", hint: "To suggest something as good. I ___ this book.", category: "Double letters", pattern: "Single 'c', double 'm' — rec-om-mend", tricky: true },
+  { word: "relevant", hint: "Connected to what is being discussed. Is that ___ to the topic?", category: "Tricky endings", pattern: "rel-e-vant — '-evant' not '-eant'", tricky: true },
+  { word: "rhyme", hint: "Words that have the same ending sound. Cat and hat ___.", category: "Silent letters", pattern: "Silent 'h' — rhyme", tricky: false },
+  { word: "rhythm", hint: "A regular pattern of beats in music or poetry. Feel the ___.", category: "Silent letters", pattern: "No vowels except 'y' — rhythm", tricky: true },
+  { word: "sacrifice", hint: "To give up something valuable. She made a great ___.", category: "Tricky middles", pattern: "sac-ri-fice — '-rifice'", tricky: false },
+  { word: "secretary", hint: "A person who helps with admin in an office. The school ___.", category: "-ary words", pattern: "sec-re-tar-y — the hidden 'e' in '-ret-'", tricky: true },
+  { word: "shoulder", hint: "The joint connecting the arm to the body. She shrugged her ___.", category: "Silent letters", pattern: "Silent 'l' — shoul-der", tricky: true },
+  { word: "signature", hint: "Your personal way of writing your name. Sign your ___.", category: "Tricky endings", pattern: "sig-na-ture — '-nature'", tricky: false },
+  { word: "significant", hint: "Important or meaningful. That was a ___ discovery.", category: "Tricky endings", pattern: "sig-nif-i-cant", tricky: false },
+  { word: "sincere", hint: "Genuine and honest. Please accept my ___ apologies.", category: "Tricky endings", pattern: "sin-cere — ends '-cere'", tricky: false },
+  { word: "soldier", hint: "A person in an army. The brave ___ marched on.", category: "Silent letters", pattern: "Silent 'd' — sol-dier", tricky: true },
+  { word: "stomach", hint: "The organ that digests food. My ___ is growling.", category: "Tricky endings", pattern: "stom-ach — '-ach' not '-eck'", tricky: true },
+  { word: "sufficient", hint: "Enough for what is needed. Is there ___ food?", category: "-ient words", pattern: "Double 'f' — suf-fi-cient", tricky: true },
+  { word: "suggest", hint: "To put forward an idea. I ___ we try again.", category: "Double letters", pattern: "Double 'g' — sug-gest", tricky: false },
+  { word: "symbol", hint: "Something that represents something else. The dove is a ___ of peace.", category: "Tricky spellings", pattern: "sym-bol — 'y' sounds like 'i'", tricky: false },
+  { word: "system", hint: "A set of connected parts that work together. The solar ___.", category: "Tricky spellings", pattern: "sys-tem — 'y' sounds like 'i'", tricky: false },
+  { word: "technique", hint: "A particular way of doing something. Her painting ___ is impressive.", category: "Tricky endings", pattern: "tech-nique — '-nique' from French", tricky: true },
+  { word: "temperature", hint: "How hot or cold something is. What is the ___?", category: "Tricky middles", pattern: "tem-per-a-ture — don't drop the 'a'", tricky: true },
+  { word: "thorough", hint: "Complete and careful. She did a ___ job.", category: "-ough words", pattern: "thor-ough — '-ough' sounds like 'uh'", tricky: true },
+  { word: "twelfth", hint: "The ordinal number for 12. She came ___.", category: "Tricky spellings", pattern: "twelfth — silent 'f' sound? No — 'f' IS there: twel-fth", tricky: true },
+  { word: "variety", hint: "A range of different things. A ___ of colours.", category: "Tricky endings", pattern: "var-i-e-ty — three vowels in a row", tricky: true },
+  { word: "vegetable", hint: "A plant grown for food. Eat your ___s!", category: "Tricky middles", pattern: "veg-et-a-ble — 'et' in the middle, often dropped in speech", tricky: true },
+  { word: "vehicle", hint: "Something used for transport. A car is a ___.", category: "Silent letters", pattern: "Silent 'h' — ve-hi-cle", tricky: true },
+  { word: "yacht", hint: "A large sailing boat. We sailed on a ___.", category: "Silent letters", pattern: "Silent 'ch' — yacht", tricky: true },
+];
+
+const TRICKY_WORDS = ALL_WORDS.filter(w => w.tricky);
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let state = {
+  player: '',
+  playerEmoji: '',
+  mode: '',
+  queue: [],
+  current: 0,
+  score: 0,
+  answers: [], // { word, typed, correct }
+  answered: false,
+  speaking: false
+};
+
+// ─── SCREEN MANAGEMENT ───────────────────────────────────────────────────────
+function showScreen(name) {
+  ['player','mode','game','results'].forEach(s => {
+    document.getElementById('screen-' + s).classList.add('hidden');
+  });
+  document.getElementById('screen-' + name).classList.remove('hidden');
+}
+
+// ─── PLAYER SELECT ───────────────────────────────────────────────────────────
+function selectPlayer(name, emoji) {
+  state.player = name;
+  state.playerEmoji = emoji;
+  document.getElementById('mode-player-name').textContent = name;
+  showScreen('mode');
+}
+
+// ─── GAME START ──────────────────────────────────────────────────────────────
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startGame(mode) {
+  state.mode = mode;
+  state.current = 0;
+  state.score = 0;
+  state.answers = [];
+  state.answered = false;
+
+  let pool;
+  if (mode === 'full') pool = shuffle(ALL_WORDS);
+  else if (mode === 'quick') pool = shuffle(ALL_WORDS).slice(0, 20);
+  else if (mode === 'tricky') pool = shuffle(TRICKY_WORDS).slice(0, 30);
+  else if (mode === 'pattern') {
+    // Group by category and pick a balanced set
+    const cats = {};
+    ALL_WORDS.forEach(w => { if (!cats[w.category]) cats[w.category] = []; cats[w.category].push(w); });
+    pool = [];
+    Object.values(cats).forEach(group => pool.push(...shuffle(group).slice(0, 3)));
+    pool = shuffle(pool);
+  }
+
+  state.queue = pool;
+
+  document.getElementById('g-player-name').textContent = state.player;
+  document.getElementById('g-player-emoji').textContent = state.playerEmoji;
+  document.getElementById('g-qtotal').textContent = state.queue.length;
+
+  showScreen('game');
+  renderQuestion();
+}
+
+// ─── RENDER QUESTION ─────────────────────────────────────────────────────────
+function renderQuestion() {
+  const q = state.queue[state.current];
+  state.answered = false;
+
+  document.getElementById('g-qnum').textContent = state.current + 1;
+  document.getElementById('g-score').textContent = state.score;
+  document.getElementById('g-progress').style.width = (state.current / state.queue.length * 100) + '%';
+  document.getElementById('g-category').textContent = q.category;
+  document.getElementById('g-hint').textContent = q.hint;
+
+  // Pattern hint — hidden until after answer
+  const patEl = document.getElementById('g-pattern');
+  patEl.style.display = 'none';
+
+  const input = document.getElementById('g-input');
+  input.value = '';
+  input.className = 'answer-input';
+  input.disabled = false;
+  input.focus();
+
+  const fb = document.getElementById('g-feedback');
+  fb.style.display = 'none';
+  fb.className = 'feedback';
+
+  document.getElementById('g-submit-btn').classList.remove('hidden');
+  document.getElementById('g-next-btn').classList.add('hidden');
+
+  // Reset audio button
+  const ab = document.getElementById('g-audio-btn');
+  ab.className = 'audio-btn';
+  ab.textContent = '🔊 Hear the word';
+
+  // Auto-speak after short delay
+  setTimeout(() => playWord(), 600);
+}
+
+// ─── SPEECH ──────────────────────────────────────────────────────────────────
+function playWord() {
+  if (!('speechSynthesis' in window)) return;
+  const q = state.queue[state.current];
+  const ab = document.getElementById('g-audio-btn');
+
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(q.word);
+  utt.lang = 'en-GB';
+  utt.rate = 0.85;
+  utt.pitch = 1;
+
+  ab.className = 'audio-btn playing';
+  ab.textContent = '🔊 Playing...';
+  utt.onend = () => {
+    ab.className = 'audio-btn';
+    ab.textContent = '🔊 Hear the word again';
+  };
+  window.speechSynthesis.speak(utt);
+}
+
+// ─── SUBMIT ──────────────────────────────────────────────────────────────────
+function handleKey(e) {
+  if (e.key === 'Enter') {
+    if (state.answered) nextQuestion();
+    else submitAnswer();
+  }
+}
+
+function submitAnswer() {
+  if (state.answered) return;
+  const q = state.queue[state.current];
+  const input = document.getElementById('g-input');
+  const typed = input.value.trim().toLowerCase();
+
+  if (!typed) {
+    input.classList.add('shake');
+    setTimeout(() => input.classList.remove('shake'), 400);
+    return;
+  }
+
+  state.answered = true;
+  const correct = typed === q.word.toLowerCase();
+
+  state.answers.push({ word: q.word, typed, correct });
+  if (correct) state.score++;
+
+  input.disabled = true;
+  input.classList.add(correct ? 'correct' : 'incorrect');
+  if (correct) input.classList.add('bounce');
+
+  const fb = document.getElementById('g-feedback');
+  const fbTitle = document.getElementById('g-feedback-title');
+  const fbBody = document.getElementById('g-feedback-body');
+
+  if (correct) {
+    fb.className = 'feedback correct';
+    const msgs = ['Brilliant! 🎉', 'Nailed it! ⭐', 'Perfect! 🌟', 'Amazing! 🚀', 'Spot on! ✨'];
+    fbTitle.textContent = msgs[Math.floor(Math.random() * msgs.length)];
+    fbBody.textContent = q.hint;
+  } else {
+    fb.className = 'feedback incorrect';
+    fbTitle.textContent = 'Not quite...';
+    fbBody.innerHTML = `The correct spelling is: <span class="correct-word">${q.word}</span><br>You wrote: <span style="color:var(--red)">${typed}</span>`;
+  }
+  fb.style.display = 'block';
+
+  // Show pattern hint
+  const patEl = document.getElementById('g-pattern');
+  document.getElementById('g-pattern-text').textContent = q.pattern;
+  patEl.style.display = 'block';
+
+  document.getElementById('g-submit-btn').classList.add('hidden');
+  document.getElementById('g-next-btn').classList.remove('hidden');
+
+  // Update score display
+  document.getElementById('g-score').textContent = state.score;
+}
+
+// ─── NEXT ─────────────────────────────────────────────────────────────────────
+function nextQuestion() {
+  state.current++;
+  if (state.current >= state.queue.length) {
+    showResults();
+  } else {
+    renderQuestion();
+  }
+}
+
+// ─── RESULTS ─────────────────────────────────────────────────────────────────
+function showResults() {
+  const total = state.queue.length;
+  const pct = Math.round(state.score / total * 100);
+
+  // Update conic gradient on circle
+  const deg = Math.round(pct / 100 * 360);
+  document.getElementById('r-circle').style.background =
+    `conic-gradient(var(--accent3) 0deg, var(--accent) ${deg}deg, var(--card2) ${deg}deg)`;
+
+  document.getElementById('r-score').textContent = state.score;
+  document.getElementById('r-total').textContent = total;
+  document.getElementById('r-correct').textContent = state.score;
+  document.getElementById('r-wrong').textContent = total - state.score;
+  document.getElementById('r-pct').textContent = pct + '%';
+
+  let title, msg;
+  if (pct === 100) { title = '🏆 PERFECT SCORE!'; msg = `Incredible, ${state.player}! You got every single word right. That's a genuine superpower.`; }
+  else if (pct >= 80) { title = '🌟 Brilliant!'; msg = `Really strong work, ${state.player}. You know most of these words well. Check the ones you missed below and practise those patterns.`; }
+  else if (pct >= 60) { title = '👍 Good effort!'; msg = `Solid work, ${state.player}. You're making progress. Focus on the missed words — there are patterns worth learning here.`; }
+  else if (pct >= 40) { title = '💪 Keep going!'; msg = `Some tricky ones in there, ${state.player}. The important thing is spotting the patterns — they'll help you remember the tricky spots.`; }
+  else { title = '🔁 Practice time!'; msg = `These words are challenging, ${state.player}. Try the Pattern Groups mode to tackle them in smaller, related groups — it's much easier that way.`; }
+
+  document.getElementById('r-title').textContent = title;
+  document.getElementById('r-msg').textContent = msg;
+
+  // Wrong words list
+  const wrong = state.answers.filter(a => !a.correct);
+  const wl = document.getElementById('r-wrong-list');
+  if (wrong.length > 0) {
+    wl.style.display = 'block';
+    document.getElementById('r-wrong-items').innerHTML = wrong.map(a =>
+      `<div class="wrong-item">
+        <span class="wrong-typed">${a.typed}</span>
+        <span class="wrong-arrow">→</span>
+        <span class="wrong-correct">${a.word}</span>
+      </div>`
+    ).join('');
+  } else {
+    wl.style.display = 'none';
+  }
+
+  showScreen('results');
+}
+</script>
+</body>
+</html>
